@@ -6,12 +6,19 @@
 (defun simulation-loop (&key (jobs 8192))
   (let ((best-rods 0)
         (best-pearls 0)
-        (iterations 0))
+        (iterations 0)
+        (alien-stuff (make-alien-stuff jobs)))
     (loop
       (handler-case
-          (run-test :jobs jobs)
-        (eazy-opencl.bindings:opencl-error ()
-          (trivial-garbage:gc :full t))
+          (run-test :alien-stuff alien-stuff)
+        (eazy-opencl.bindings:opencl-error (e)
+          (cond
+            ((eql (eazy-opencl.bindings:opencl-error-code e)
+                  'eazy-opencl.bindings:out-of-host-memory)
+             (format t "~&ow ow ow I'm GCing now")
+             (trivial-garbage:gc :full t))
+            (t
+             (error e))))
         (:no-error (this-rods this-pearls)
           (incf iterations (* jobs +kernel-iterations+))
           (alexandria:maxf best-rods this-rods)

@@ -42,6 +42,7 @@
                                      0 (cffi:null-pointer) (cffi:null-pointer))
           (cffi:with-foreign-array (work-size '%ocl:size-t (list jobs))
             (let ((kernel (eazy-opencl.host:create-kernel *program* "simulate")))
+              (trivial-garbage:cancel-finalization kernel)
               (eazy-opencl.host:set-kernel-arg kernel 0 input-buffer '%ocl:mem)
               (eazy-opencl.host:set-kernel-arg kernel 1 results-buffer '%ocl:mem)
               (%ocl:enqueue-nd-range-kernel queue kernel
@@ -49,7 +50,8 @@
                                             (cffi:null-pointer)
                                             0
                                             (cffi:null-pointer)
-                                            (cffi:null-pointer))))
+                                            (cffi:null-pointer))
+              (eazy-opencl.bindings:finalize-box kernel)))
           ;; The thing about using finalizers for foreign memory is that the
           ;; host is rarely going to find a need to garbage collect when you
           ;; want it to.

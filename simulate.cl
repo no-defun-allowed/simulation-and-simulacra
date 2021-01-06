@@ -9,7 +9,7 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global unsigned 
   size_t tid = get_global_id(0);
   
 #define NEXT_VALUE seed = (seed * MULTIPLIER + ADDEND) & MASK
-#define SAMPLE(low, high) ((seed % high) < low)
+#define SAMPLE(low, high) (((seed >> 32L) % high) < low)
 #define REPEAT(n) for (int zz = 0; zz < n; zz++)
   unsigned long seed = initial_seeds[tid];
 
@@ -18,7 +18,7 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global unsigned 
   for (int i = 0; i < ITERATIONS; i++) {
     unsigned long rods = 0, pearls = 0;
     REPEAT (305) {
-      if (SAMPLE(50, 100)) rods++;
+      if (SAMPLE(1, 2)) rods++;
       NEXT_VALUE;
     }
     REPEAT (262) {

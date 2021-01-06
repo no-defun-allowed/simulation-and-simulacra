@@ -2,7 +2,7 @@
 
 (defun randomize (vector)
   (dotimes (n (length vector))
-    (setf (aref vector n) (random (expt 2 48)))))
+    (setf (aref vector n) (random (expt 2 64)))))
 
 (defun make-random-u64-vector (size)
   "Make a random input vector, to seed the RNGs of the workers."

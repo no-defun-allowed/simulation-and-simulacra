@@ -1,15 +1,18 @@
 /* -*- mode: c -*- */
 
-#define MULTIPLIER 0x5DEECE6DDL
-#define ADDEND     0xBL
-#define MASK       ((1L << 48) - 1)
-#define ITERATIONS 10000
+#define ITERATIONS 40000
+
+inline unsigned int MWC64X(unsigned long* state)
+{
+    unsigned int c = (*state) >> 32, x = (*state) & 0xFFFFFFFF;
+    *state = x * ((unsigned long)4294883355U) + c;
+    return x^c;
+}
 
 __kernel void simulate(__global unsigned long* initial_seeds, __global unsigned long* results) {
   size_t tid = get_global_id(0);
   
-#define NEXT_VALUE seed = (seed * MULTIPLIER + ADDEND) & MASK
-#define SAMPLE(low, high) (((seed >> 16L) % high) < low)
+#define SAMPLE(low, high) ((MWC64X(&seed) % high) < low)
 #define REPEAT(n) for (int zz = 0; zz < n; zz++)
   unsigned long seed = initial_seeds[tid];
 
@@ -17,13 +20,16 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global unsigned 
 
   for (int i = 0; i < ITERATIONS; i++) {
     unsigned long rods = 0, pearls = 0;
-    REPEAT (305) {
-      rods += seed >> 47;       /* get MSB */
-      NEXT_VALUE;
+    /* Thanks to benjamin from ##symbolics2 for this idea. */
+    REPEAT (305 / 32) {
+      /* This basically performs 32 tests from one random 32-bit value. */
+      rods += popcount(MWC64X(&seed));
+    }
+    REPEAT (305 % 32) {
+      rods += SAMPLE(1, 2);
     }
     REPEAT (262) {
       pearls += SAMPLE(20, 423);
-      NEXT_VALUE;
     }
     maximum_rods = max(maximum_rods, rods);
     maximum_pearls = max(maximum_pearls, pearls);

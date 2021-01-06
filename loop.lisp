@@ -1,6 +1,6 @@
 (in-package :simulation-and-simulacra)
 
-(defconstant +kernel-iterations+ 10000
+(defconstant +kernel-iterations+ 40000
   "The value of ITERATIONS from simulate.cl")
 
 (defun simulation-loop (&key (jobs 8192))

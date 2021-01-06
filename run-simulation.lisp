@@ -26,6 +26,7 @@
          (context (third *device*))
          (queue   (eazy-opencl.host:create-command-queue-with-properties
                    context (second *device*))))
+    (trivial-garbage:cancel-finalization queue)
     (cffi:with-pointer-to-vector-data (inputs-ptr inputs)
       (cffi:with-pointer-to-vector-data (results-ptr results)
         (let ((input-buffer (eazy-opencl.host:create-buffer context
@@ -34,6 +35,8 @@
               (results-buffer (eazy-opencl.host:create-buffer context
                                                               :mem-read-only
                                                               (* jobs 16))))
+          (trivial-garbage:cancel-finalization input-buffer)
+          (trivial-garbage:cancel-finalization results-buffer)
           (%ocl:enqueue-write-buffer queue input-buffer %ocl:true
                                      0 (* jobs 8) inputs-ptr
                                      0 (cffi:null-pointer) (cffi:null-pointer))
@@ -55,6 +58,7 @@
           (%ocl:enqueue-read-buffer queue results-buffer %ocl:true
                                     0 (* jobs 16) results-ptr
                                     0 (cffi:null-pointer) (cffi:null-pointer)))))
+    (eazy-opencl.bindings:finalize-box queue)
     (loop for n below jobs
           maximizing (aref results (* 2 n))      into maximum-rods
           maximizing (aref results (1+ (* 2 n))) into maximum-pearls

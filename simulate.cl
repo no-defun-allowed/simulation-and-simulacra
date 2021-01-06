@@ -18,11 +18,11 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global unsigned 
   for (int i = 0; i < ITERATIONS; i++) {
     unsigned long rods = 0, pearls = 0;
     REPEAT (305) {
-      if (SAMPLE(1, 2)) rods++;
+      rods += SAMPLE(1, 2);
       NEXT_VALUE;
     }
     REPEAT (262) {
-      if (SAMPLE(20, 423)) pearls++;
+      pearls += SAMPLE(20, 423);
       NEXT_VALUE;
     }
     maximum_rods = max(maximum_rods, rods);

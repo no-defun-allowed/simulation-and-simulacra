@@ -27,6 +27,7 @@
   input results
   input-buffer results-buffer
   queue kernel)
+
 (defun make-alien-stuff (jobs)
   (let ((context (third *device*)))
     (%make-alien-stuff

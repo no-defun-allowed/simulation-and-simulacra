@@ -28,4 +28,5 @@
   (let* ((platform (elt (eazy-opencl.host:get-platform-ids) platform-n))
          (devices  (eazy-opencl.host:get-device-ids platform :device-type-default))
          (context  (eazy-opencl.host:create-context devices :context-platform platform))) 
-    (setf *device* (list platform (first devices) context))))
+    (setf *device* (list platform (first devices) context))
+    (reload)))

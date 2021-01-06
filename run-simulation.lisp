@@ -1,11 +1,13 @@
 (in-package :simulation-and-simulacra)
 
 (defun make-random-u64-vector (size)
+  "Make a random input vector, to seed the RNGs of the workers."
   (let ((vector (make-array size :element-type '(unsigned-byte 64))))
     (dotimes (n size)
       (setf (aref vector n) (random (expt 2 48))))
     vector))
 (defun make-result-vector (size)
+  "Make a vector to store the results of the workers in."
   (make-array (* 2 size) :element-type '(unsigned-byte 64)))
 
 (defvar *program*)
@@ -45,6 +47,11 @@
                                             0
                                             (cffi:null-pointer)
                                             (cffi:null-pointer))))
+          ;; The thing about using finalizers for foreign memory is that the
+          ;; host is rarely going to find a need to garbage collect when you
+          ;; want it to.
+          (eazy-opencl.bindings:finalize-box input-buffer)
+          (eazy-opencl.bindings:finalize-box results-buffer)
           (%ocl:enqueue-read-buffer queue results-buffer %ocl:true
                                     0 (* jobs 16) results-ptr
                                     0 (cffi:null-pointer) (cffi:null-pointer)))))

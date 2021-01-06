@@ -2,4 +2,5 @@
   :depends-on (:eazy-opencl)
   :components ((:file "package")
                (:file "device")
-               (:file "run-simulation")))
+               (:file "run-simulation")
+               (:file "loop")))

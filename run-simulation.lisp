@@ -14,7 +14,8 @@
   (setf *program*
         (eazy-opencl.host:create-program-with-source
          (third *device*)
-         (alexandria:read-file-into-string "simulate.cl")))
+         (alexandria:read-file-into-string
+          (asdf:system-relative-pathname :simulation-and-simulacra "simulate.cl"))))
   (eazy-opencl.host:build-program *program* :devices (list (second *device*))))
 
 (defun run-test (&key (jobs 8192))

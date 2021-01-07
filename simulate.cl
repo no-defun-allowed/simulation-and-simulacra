@@ -35,10 +35,10 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global ulong4* r
       pearls += SAMPLE(20, 423);
     }
     if ((maximum_rods.x < ROD_LIMIT && rods > maximum_rods.x) ||
-        (rods == maximum_rods.x && pearls > maximum_rods.y))
+        (rods >= maximum_rods.x && pearls > maximum_rods.y))
       maximum_rods = (ulong2){rods, pearls};
     if ((maximum_pearls.y < PEARL_LIMIT && pearls > maximum_pearls.y) ||
-        (pearls == maximum_pearls.y && rods > maximum_pearls.x))
+        (pearls >= maximum_pearls.y && rods > maximum_pearls.x))
       maximum_pearls = (ulong2){rods, pearls};
   }
 

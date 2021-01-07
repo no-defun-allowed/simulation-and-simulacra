@@ -11,7 +11,7 @@
     vector))
 (defun make-result-vector (size)
   "Make a vector to store the results of the workers in."
-  (make-array (* 4 size) :element-type '(unsigned-byte 64)))
+  (make-array (* 4 size) :element-type '(unsigned-byte 16)))
 
 (defvar *program*)
 
@@ -50,14 +50,14 @@
 (defun maximize-rods (rod-rods rod-pearls best-rod-rods best-rod-pearls)
   (if (or (and (< best-rod-rods +rod-limit+)
                (> rod-rods best-rod-rods))
-          (and (>= rod-rods best-rod-rods)
+          (and (= rod-rods best-rod-rods)
                (> rod-pearls best-rod-pearls)))
       (values rod-rods      rod-pearls)
       (values best-rod-rods best-rod-pearls)))
 (defun maximize-pearls (pearl-rods pearl-pearls best-pearl-rods best-pearl-pearls)
   (if (or (and (< best-pearl-pearls +pearl-limit+)
                (> pearl-pearls best-pearl-pearls))
-          (and (>= pearl-pearls best-pearl-pearls)
+          (and (= pearl-pearls best-pearl-pearls)
                (> pearl-rods best-pearl-rods)))
       (values pearl-rods      pearl-pearls)
       (values best-pearl-rods best-pearl-pearls)))
@@ -107,7 +107,7 @@
                                         (cffi:null-pointer)
                                         (cffi:null-pointer)))
         (%ocl:enqueue-read-buffer queue results-buffer %ocl:true
-                                  0 (* jobs 8 4) results-ptr
+                                  0 (* jobs 2 4) results-ptr
                                   0 (cffi:null-pointer) (cffi:null-pointer)))
       (randomize inputs)
       (read-off-results jobs results))))

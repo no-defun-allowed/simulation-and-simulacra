@@ -43,13 +43,24 @@
                context (second *device*))
      :kernel  (eazy-opencl.host:create-kernel *program* "simulate"))))
 
-(defmacro maximize ((&rest comparisons) &body places)
-  `(when (or ,@(loop for (this best) on comparisons by #'cddr
-                     collect `(and ,@(loop for (this* best*) in others
-                                           collect `(= ,this* ,best*))
-                                   (> ,this ,best))
-                     collecting (list this best) into others))
-     (setf ,@places)))
+(defconstant +rod-limit+ 211)
+(defconstant +pearl-limit+ 42)
+
+(declaim (inline maximize-rods maximize-pearls))
+(defun maximize-rods (rod-rods rod-pearls best-rod-rods best-rod-pearls)
+  (if (or (and (< best-rod-rods +rod-limit+)
+               (> rod-rods best-rod-rods))
+          (and (= best-rod-rods rod-rods)
+               (> rod-pearls best-rod-pearls)))
+      (values rod-rods      rod-pearls)
+      (values best-rod-rods best-rod-pearls)))
+(defun maximize-pearls (pearl-rods pearl-pearls best-pearl-rods best-pearl-pearls)
+  (if (or (and (< best-pearl-pearls +pearl-limit+)
+               (> pearl-pearls best-pearl-pearls))
+          (and (= best-pearl-pearls pearl-pearls)
+               (> pearl-rods best-pearl-rods)))
+      (values pearl-rods      pearl-pearls)
+      (values best-pearl-rods best-pearl-pearls)))
 
 (defun read-off-results (jobs results)
   (let ((best-rod-rods     0)
@@ -64,14 +75,12 @@
           for rod-pearls   = (aref results (+ 1 (* 4 n)))
           for pearl-rods   = (aref results (+ 2 (* 4 n)))
           for pearl-pearls = (aref results (+ 3 (* 4 n)))
-          do (maximize (rod-rods   best-rod-rods
-                        rod-pearls best-rod-pearls)
-               best-rod-rods   rod-rods
-               best-rod-pearls rod-pearls)
-          do (maximize (pearl-pearls best-pearl-pearls
-                        pearl-rods   best-pearl-rods)
-               best-pearl-rods   pearl-rods
-               best-pearl-pearls pearl-pearls))
+          do (multiple-value-setq (best-rod-rods best-rod-pearls)
+               (maximize-rods rod-rods rod-pearls
+                              best-rod-rods best-rod-pearls))
+             (multiple-value-setq (best-pearl-rods best-pearl-pearls)
+               (maximize-pearls pearl-rods pearl-pearls
+                                best-pearl-rods best-pearl-pearls)))
     (values best-rod-rods best-rod-pearls
             best-pearl-rods best-pearl-pearls)))
   
@@ -98,7 +107,7 @@
                                         (cffi:null-pointer)
                                         (cffi:null-pointer)))
         (%ocl:enqueue-read-buffer queue results-buffer %ocl:true
-                                  0 (* jobs 16) results-ptr
+                                  0 (* jobs 8 4) results-ptr
                                   0 (cffi:null-pointer) (cffi:null-pointer)))
       (randomize inputs)
       (read-off-results jobs results))))

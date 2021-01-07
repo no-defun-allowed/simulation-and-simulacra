@@ -1,9 +1,10 @@
 /* -*- mode: c -*- */
 
-#define ITERATIONS 40000
+#define ITERATIONS  40000
+#define ROD_LIMIT   211
+#define PEARL_LIMIT 42
 
-inline unsigned int MWC64X(unsigned long* state)
-{
+inline unsigned int MWC64X(unsigned long* state) {
     unsigned int c = (*state) >> 32, x = (*state) & 0xFFFFFFFF;
     *state = x * ((unsigned long)4294883355U) + c;
     return x^c;
@@ -21,18 +22,23 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global ulong4* r
   for (int i = 0; i < ITERATIONS; i++) {
     unsigned long rods = 0, pearls = 0;
     /* Thanks to benjamin from ##symbolics2 for this idea. 
-       We know that */
+       We know that each bit is going to have a 0.5 probability of being set,
+       and blaze drops have a probability of 0.5. So popcount(random-value)
+       conveniently lets us perform many tests in parallel. */
     REPEAT (305 / 32) {
       /* This basically performs 32 tests from one random 32-bit value. */
       rods += popcount(MWC64X(&seed));
     }
+    /* Now perform the last few tests. */
     rods += popcount(MWC64X(&seed) & ((1L << (305L % 32L)) - 1L));
     REPEAT (262) {
       pearls += SAMPLE(20, 423);
     }
-    if (rods > maximum_rods.x)
+    if ((maximum_rods.x < ROD_LIMIT && rods > maximum_rods.x) ||
+        (rods == maximum_rods.x && pearls > maximum_rods.y))
       maximum_rods = (ulong2){rods, pearls};
-    if (pearls > maximum_pearls.y)
+    if ((maximum_pearls.y < PEARL_LIMIT && pearls > maximum_pearls.y) ||
+        (pearls == maximum_pearls.y && rods > maximum_pearls.x))
       maximum_pearls = (ulong2){rods, pearls};
   }
 

@@ -37,10 +37,10 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global ushort4* 
       pearls += (unsigned short)SAMPLE(20, 423);
     }
     if ((maximum_rods.x < ROD_LIMIT && rods > maximum_rods.x) ||
-        (rods == maximum_rods.x && pearls > maximum_rods.y))
+        (rods >= ROD_LIMIT && pearls > maximum_rods.y))
       maximum_rods = (ushort2){rods, pearls};
     if ((maximum_pearls.y < PEARL_LIMIT && pearls > maximum_pearls.y) ||
-        (pearls == maximum_pearls.y && rods > maximum_pearls.x))
+        (pearls >= PEARL_LIMIT && rods > maximum_pearls.x))
       maximum_pearls = (ushort2){rods, pearls};
   }
 

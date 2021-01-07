@@ -4,8 +4,8 @@
   "The value of ITERATIONS from simulate.cl")
 
 (defun simulation-loop (&key (jobs 8192))
-  (let ((best-rods 0)
-        (best-pearls 0)
+  (let ((best-rods   (list 0 0))
+        (best-pearls (list 0 0))
         (iterations 0)
         (alien-stuff (make-alien-stuff jobs)))
     (loop
@@ -19,13 +19,21 @@
              (trivial-garbage:gc :full t))
             (t
              (error e))))
-        (:no-error (this-rods this-pearls)
+        (:no-error (rod-rods rod-pearls pearl-rods pearl-pearls)
           (incf iterations (* jobs +kernel-iterations+))
-          (alexandria:maxf best-rods this-rods)
-          (alexandria:maxf best-pearls this-pearls)
-          (format t "~&~5,3e iterations: ~3d rods, ~2d pearl trades"
-                  iterations best-rods best-pearls)))
-      (when (and (>= best-pearls 42)
-                 (>= best-rods   211))
-        (format t "~& you win!!!!!1!!!!one!")
-        (return)))))
+          (maximize (rod-rods   (first best-rods)
+                     rod-pearls (second best-rods))
+            best-rods (list rod-rods rod-pearls))
+          (maximize (pearl-pearls (second best-pearls)
+                     pearl-rods   (first best-pearls))
+            best-pearls (list pearl-rods pearl-pearls))
+          (format t "~&~5,3,2e iterations: (~{~3d rods, ~2d~}) (~{~3d, ~2d pearls~})"
+                  iterations best-rods best-pearls)
+          (format t "~&            this run: (~3d rods, ~2d) (~3d, ~2d pearls)"
+                  rod-rods rod-pearls pearl-rods pearl-pearls)
+          (when (or (and (>= rod-pearls 42)
+                         (>= rod-rods   211))
+                    (and (>= pearl-pearls 42)
+                         (>= pearl-rods   211)))
+            (format t "~& you win!!!!!1!!!!one!")
+            (return)))))))

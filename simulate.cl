@@ -9,39 +9,32 @@ inline unsigned int MWC64X(unsigned long* state)
     return x^c;
 }
 
-__kernel void simulate(__global unsigned long* initial_seeds, __global unsigned long* results) {
+__kernel void simulate(__global unsigned long* initial_seeds, __global ulong4* results) {
   size_t tid = get_global_id(0);
   
 #define SAMPLE(low, high) ((MWC64X(&seed) % high) < low)
 #define REPEAT(n) for (int zz = 0; zz < n; zz++)
   unsigned long seed = initial_seeds[tid];
 
-  unsigned long maximum_rods = 0, maximum_pearls = 0;
+  ulong2 maximum_rods = {0, 0}, maximum_pearls = {0, 0};
 
   for (int i = 0; i < ITERATIONS; i++) {
     unsigned long rods = 0, pearls = 0;
-    /* Thanks to benjamin from ##symbolics2 for this idea. */
+    /* Thanks to benjamin from ##symbolics2 for this idea. 
+       We know that */
     REPEAT (305 / 32) {
       /* This basically performs 32 tests from one random 32-bit value. */
       rods += popcount(MWC64X(&seed));
     }
-    REPEAT (305 % 32) {
-      rods += SAMPLE(1, 2);
-    }
+    rods += popcount(MWC64X(&seed) & ((1L << (305L % 32L)) - 1L));
     REPEAT (262) {
       pearls += SAMPLE(20, 423);
     }
-    maximum_rods = max(maximum_rods, rods);
-    maximum_pearls = max(maximum_pearls, pearls);
+    if (rods > maximum_rods.x)
+      maximum_rods = (ulong2){rods, pearls};
+    if (pearls > maximum_pearls.y)
+      maximum_pearls = (ulong2){rods, pearls};
   }
 
-  results[tid * 2]     = maximum_rods;
-  results[tid * 2 + 1] = maximum_pearls;
-}
-
-__kernel void hello(__global unsigned long* initial_seeds, __global unsigned long* results) {
-  size_t tid = get_global_id(0);
-  unsigned long seed = initial_seeds[tid];
-  results[tid * 2]     = seed;
-  results[tid * 2 + 1] = seed;
+  results[tid] = (ulong4){maximum_rods, maximum_pearls};
 }

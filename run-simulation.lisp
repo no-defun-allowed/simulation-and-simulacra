@@ -11,7 +11,7 @@
     vector))
 (defun make-result-vector (size)
   "Make a vector to store the results of the workers in."
-  (make-array (* 2 size) :element-type '(unsigned-byte 64)))
+  (make-array (* 4 size) :element-type '(unsigned-byte 64)))
 
 (defvar *program*)
 
@@ -38,11 +38,43 @@
      :results (make-result-vector jobs)
      :results-buffer (eazy-opencl.host:create-buffer context
                                                      :mem-read-only
-                                                     (* jobs 16))
+                                                     (* jobs 8 4))
      :queue   (eazy-opencl.host:create-command-queue-with-properties
                context (second *device*))
      :kernel  (eazy-opencl.host:create-kernel *program* "simulate"))))
 
+(defmacro maximize ((&rest comparisons) &body places)
+  `(when (or ,@(loop for (this best) on comparisons by #'cddr
+                     collect `(and ,@(loop for (this* best*) in others
+                                           collect `(= ,this* ,best*))
+                                   (> ,this ,best))
+                     collecting (list this best) into others))
+     (setf ,@places)))
+
+(defun read-off-results (jobs results)
+  (let ((best-rod-rods     0)
+        (best-rod-pearls   0)
+        (best-pearl-rods   0)
+        (best-pearl-pearls 0))
+    (declare ((unsigned-byte 64)
+              best-rod-rods best-rod-pearls
+              best-pearl-rods best-pearl-pearls))
+    (loop for n below jobs
+          for rod-rods     = (aref results      (* 4 n))
+          for rod-pearls   = (aref results (+ 1 (* 4 n)))
+          for pearl-rods   = (aref results (+ 2 (* 4 n)))
+          for pearl-pearls = (aref results (+ 3 (* 4 n)))
+          do (maximize (rod-rods   best-rod-rods
+                        rod-pearls best-rod-pearls)
+               best-rod-rods   rod-rods
+               best-rod-pearls rod-pearls)
+          do (maximize (pearl-pearls best-pearl-pearls
+                        pearl-rods   best-pearl-rods)
+               best-pearl-rods   pearl-rods
+               best-pearl-pearls pearl-pearls))
+    (values best-rod-rods best-rod-pearls
+            best-pearl-rods best-pearl-pearls)))
+  
 (defun run-test (&key (jobs 8192)
                       (alien-stuff (make-alien-stuff jobs)))
   (let* ((inputs  (alien-stuff-input alien-stuff))
@@ -53,29 +85,20 @@
          (queue   (alien-stuff-queue alien-stuff)))
     (cffi:with-pointer-to-vector-data (inputs-ptr inputs)
       (cffi:with-pointer-to-vector-data (results-ptr results)
-          (%ocl:enqueue-write-buffer queue input-buffer %ocl:true
-                                     0 (* jobs 8) inputs-ptr
-                                     0 (cffi:null-pointer) (cffi:null-pointer))
-          (cffi:with-foreign-array (work-size '%ocl:size-t (list jobs))
-              (eazy-opencl.host:set-kernel-arg kernel 0 input-buffer '%ocl:mem)
-              (eazy-opencl.host:set-kernel-arg kernel 1 results-buffer '%ocl:mem)
-              (%ocl:enqueue-nd-range-kernel queue kernel
-                                            1 (cffi:null-pointer) work-size
-                                            (cffi:null-pointer)
-                                            0
-                                            (cffi:null-pointer)
-                                            (cffi:null-pointer))
-              (eazy-opencl.bindings:finalize-box kernel))
-        ;; The thing about using finalizers for foreign memory is that the
-        ;; host is rarely going to find a need to garbage collect when you
-        ;; want it to.
-        (eazy-opencl.bindings:finalize-box input-buffer)
-        (eazy-opencl.bindings:finalize-box results-buffer)
+        (%ocl:enqueue-write-buffer queue input-buffer %ocl:true
+                                   0 (* jobs 8) inputs-ptr
+                                   0 (cffi:null-pointer) (cffi:null-pointer))
+        (cffi:with-foreign-array (work-size '%ocl:size-t (list jobs))
+          (eazy-opencl.host:set-kernel-arg kernel 0 input-buffer '%ocl:mem)
+          (eazy-opencl.host:set-kernel-arg kernel 1 results-buffer '%ocl:mem)
+          (%ocl:enqueue-nd-range-kernel queue kernel
+                                        1 (cffi:null-pointer) work-size
+                                        (cffi:null-pointer)
+                                        0
+                                        (cffi:null-pointer)
+                                        (cffi:null-pointer)))
         (%ocl:enqueue-read-buffer queue results-buffer %ocl:true
                                   0 (* jobs 16) results-ptr
                                   0 (cffi:null-pointer) (cffi:null-pointer)))
       (randomize inputs)
-      (loop for n below jobs
-            maximizing (aref results (* 2 n))      into maximum-rods
-            maximizing (aref results (1+ (* 2 n))) into maximum-pearls
-            finally (return (values maximum-rods maximum-pearls))))))
+      (read-off-results jobs results))))

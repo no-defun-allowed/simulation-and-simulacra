@@ -29,9 +29,9 @@ inline unsigned short pearl_drops(unsigned long uniform64) {
     unsigned short middle = (first + last + 1) / 2;
     unsigned short m = middle - 1;
     /* Set the MSB if this is true. */
-    unsigned short pull_left = binomial_table[middle] > uniform64;
-    first = select(first, middle, pull_left);
-    last  = select(m,     last,   pull_left);
+    unsigned short pull_left = uniform64 > binomial_table[middle];
+    first = select(middle, first, pull_left);
+    last  = select(last,   m,     pull_left);
   }
   return first;
 }

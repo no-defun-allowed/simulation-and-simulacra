@@ -1,9 +1,9 @@
 (in-package :simulation-and-simulacra)
 
-(defconstant +kernel-iterations+ 40000
+(defconstant +kernel-iterations+ 100000
   "The value of ITERATIONS from simulate.cl")
 
-(defun simulation-loop (&key (jobs 8192))
+(defun simulation-loop (&key (jobs 9000))
   (let ((best-rods   (list 0 0))
         (best-pearls (list 0 0))
         (iterations 0)

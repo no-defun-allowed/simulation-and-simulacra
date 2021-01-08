@@ -3,10 +3,9 @@
 A program that simulates "playing Minecraft", watching how many blaze rods drop
 and how many ender pearls are traded for.
 
-On a Radeon RX 580 card, this code takes about 0.90 seconds to perform 
-(the default value of) 8192 simulation jobs, each performing 40,000 simulations.
-This results in performing about 363 million simulations a second. Pretty neat
-for my first OpenCL program.
+On a Radeon RX 580 card, this code takes about 2.24 seconds to perform 
+(the default value of) 9000 simulation jobs, each performing 100,000 simulations.
+This results in performing about 400 million simulations a second.
 
 This program repeatedly prints out lines like
 
@@ -22,6 +21,6 @@ measure the "best" as:
   value.
 - If we aren't decreasing the primary value, maximize the secondary value.
 
-You win if either run reaches at least `(212 rods, 42 pearls)`. This must
-be the same, too; it does not take too long to reach something like
-`(212 rods, 10) (167, 42 pearls)`, but neither value is successful.
+You win if either run reaches at least `(212 rods, 42 pearls)`. One run must
+achieve both values; it does not take too long to reach something like
+`(212 rods, 10) (167, 42 pearls)`, but neither run is in fact successful.

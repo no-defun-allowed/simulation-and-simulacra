@@ -1,6 +1,6 @@
 /* -*- mode: c -*- */
 
-#define ITERATIONS  40000
+#define ITERATIONS  100000
 #define ROD_LIMIT   211
 #define PEARL_LIMIT 42
 

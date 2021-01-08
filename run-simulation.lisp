@@ -37,7 +37,7 @@
                                                    (* jobs 8))
      :results (make-result-vector jobs)
      :results-buffer (eazy-opencl.host:create-buffer context
-                                                     :mem-read-only
+                                                     :mem-write-only
                                                      (* jobs 8 4))
      :queue   (eazy-opencl.host:create-command-queue-with-properties
                context (second *device*))
@@ -84,7 +84,7 @@
     (values best-rod-rods best-rod-pearls
             best-pearl-rods best-pearl-pearls)))
   
-(defun run-test (&key (jobs 8192)
+(defun run-test (&key (jobs 9000)
                       (alien-stuff (make-alien-stuff jobs)))
   (let* ((inputs  (alien-stuff-input alien-stuff))
          (input-buffer (alien-stuff-input-buffer alien-stuff))

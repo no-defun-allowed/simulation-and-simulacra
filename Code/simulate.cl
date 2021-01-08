@@ -5,6 +5,8 @@
 #define PEARL_LIMIT 42
 
 /* Generate this with generate-cdf-table.lisp */
+/* This, of course, has an error of up to 2^-64, but that is hopefully a
+   sufficiently small margin. Even Pr(Pearls=42) is within 1e-8× its actual value. */
 __constant static const unsigned long binomial_table[] = {
   0xFFFFFFFFFFFFFFFF, 0xFFFFCC4D8E5B5800, 0xFFFD2C1CF200D000, 0xFFEC2AB9775B1800,
   0xFFA30678F43A4000, 0xFEB7FDF86B720000, 0xFC5E1ED41D0E2800, 0xF75EB523A0C4D800,
@@ -71,7 +73,7 @@ __kernel void simulate(__global unsigned long* initial_seeds, __global ushort4* 
     /* Use the inverse CDF table to realize the binomial distribution for 
        pearl drops. */
     pearls += pearl_drops(uniform64);
-      
+
     if ((maximum_rods.x < ROD_LIMIT && rods > maximum_rods.x) ||
         (rods >= ROD_LIMIT && pearls > maximum_rods.y))
       maximum_rods = (ushort2){rods, pearls};

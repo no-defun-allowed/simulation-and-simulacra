@@ -5,7 +5,7 @@
     (eazy-gnuplot:gp-setup :xlabel "Iterations"
                            :ylabel "Value"
                            :output pathname
-                           :terminal :png
+                           :terminal '(:png :size #:|1280,640|)
                            :key '(:top :right)
                            :yrange '#:|[0:250]|) ; wtf
     (loop for n from 1 below (length (aref history 0))

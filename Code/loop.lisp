@@ -3,7 +3,10 @@
 (defconstant +kernel-iterations+ 1000000
   "The value of ITERATIONS from simulate.cl")
 
+(defvar *history* (make-array 8192 :fill-pointer 0 :adjustable t)) 
+
 (defun simulation-loop (&key (jobs 9000))
+  (setf (fill-pointer *history*) 0)
   (let ((best-rods   (list 0 0))
         (best-pearls (list 0 0))
         (iterations 0)
@@ -24,6 +27,11 @@
                 iterations best-rods best-pearls)
         (format t "    this run: (~3d rods, ~2d) (~3d, ~2d pearls)"
                 rod-rods rod-pearls pearl-rods pearl-pearls)
+        (vector-push-extend `(,iterations ,@best-rods
+                                          ,@best-pearls
+                                          ,rod-rods ,rod-pearls
+                                          ,pearl-rods ,pearl-pearls)
+                            *history*)
         (when (or (and (>= rod-pearls 42)
                        (>= rod-rods   211))
                   (and (>= pearl-pearls 42)

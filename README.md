@@ -1,5 +1,7 @@
 # SIMULATION AND SIMULACRA
 
+![A plot of 2 trillion simulations.](2-trillion-runs.png)
+
 A program that simulates "playing Minecraft", watching how many blaze rods drop
 and how many ender pearls are traded for.
 

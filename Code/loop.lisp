@@ -5,7 +5,7 @@
 
 (defvar *history* (make-array 8192 :fill-pointer 0 :adjustable t)) 
 
-(defun simulation-loop (&key (jobs 9000))
+(defun simulation-loop (&key (jobs 200))
   (setf (fill-pointer *history*) 0)
   (let ((best-rods   (list 0 0))
         (best-pearls (list 0 0))

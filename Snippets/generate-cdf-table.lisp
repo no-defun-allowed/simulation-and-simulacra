@@ -27,4 +27,4 @@
             table)
     (format t "~&#define ~a ~d" length-name (length table))))
 
-;; (print-binomial-table 262 (float (/ 20 423) 1.0d0))
+;; (print-binomial-table 262 (float (/ 20 423) 1.0d0)) 

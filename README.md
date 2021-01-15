@@ -5,9 +5,10 @@
 A program that simulates "playing Minecraft", watching how many blaze rods drop
 and how many ender pearls are traded for.
 
-On a Radeon RX 580 card, this code takes about 2.00 seconds to perform 
-(the default value of) 9000 simulation jobs, each performing 1,000,000 
-simulations. This results in performing about 4.51 billion simulations a second.
+On a Ryzen 1600 processor, using 12 threads, this code takes about 1.29 seconds
+to perform (the default value of) 200 simulation jobs, each performing
+1,000,000 simulations. This results in performing about 156 million
+simulations a second.
 
 This program repeatedly prints out lines like
 
@@ -26,3 +27,6 @@ measure the "best" as:
 You win if either run reaches at least `(212 rods, 42 pearls)`. One run must
 achieve both values; it does not take too long to reach something like
 `(212 rods, 10) (167, 42 pearls)`, but neither run is in fact successful.
+
+On SBCL, you can make things a tiny bit faster with `(push :popcnt sb-c:*backend-subfeatures*)`,
+assuming your CPU supports the `POPCNT` instruction.

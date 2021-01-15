@@ -13,14 +13,11 @@
 ;;; Nothing!
 (defun reload ())
 
-(defstruct (alien-stuff (:constructor %make-alien-stuff)))
+(defstruct (alien-stuff (:constructor %make-alien-stuff))
+  (garbage-vector #()))
 
 (defun make-alien-stuff (jobs)
-  (declare (ignore jobs))
-  (%make-alien-stuff))
-
-(defconstant +rod-limit+ 211)
-(defconstant +pearl-limit+ 42)
+  (%make-alien-stuff :garbage-vector (make-array jobs)))
 
 (declaim (inline maximize-rods maximize-pearls))
 (defun maximize-rods (rod-rods rod-pearls best-rod-rods best-rod-pearls)
@@ -60,8 +57,14 @@
     (values best-rod-rods best-rod-pearls
             best-pearl-rods best-pearl-pearls)))
 
+(defconstant +kernel-iterations+ 1000000
+  "How many iterations to pull from one seed.")
+
+(defconstant +rod-limit+ 211)
+(defconstant +pearl-limit+ 42)
+
 (defun run-test (&key (jobs 200)
                       (alien-stuff (make-alien-stuff jobs)))
-  (declare (ignore alien-stuff))
-  (read-off-results (lparallel:pmapcar #'simulate
-                                       (make-random-u64-vector jobs))))
+  (read-off-results
+   (lparallel:pmapcar #'simulate
+                      (alien-stuff-garbage-vector alien-stuff))))

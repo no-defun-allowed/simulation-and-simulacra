@@ -1,8 +1,5 @@
 (in-package :simulation-and-simulacra)
 
-(defconstant +kernel-iterations+ 1000000
-  "The value of ITERATIONS from simulate.cl")
-
 (defvar *history* (make-array 8192 :fill-pointer 0 :adjustable t)) 
 
 (defun simulation-loop (&key (jobs 200))

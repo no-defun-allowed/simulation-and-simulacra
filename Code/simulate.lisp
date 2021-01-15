@@ -44,9 +44,10 @@
     (values (ldb (byte 64 0) (+ c (* x 4294883355)))
             (logxor c x))))
 
-(defun simulate (garbage)
-  (declare (optimize (speed 3) (safety 0))
-           (ignore garbage))
+(defun simulate ()
+  (declare (optimize (speed 3) (safety 0)
+                     (space 0) (debug 0)
+                     (compilation-speed 0)))
   (let ((seed (random (expt 2 64)))
         (best-rod-rods 0)
         (best-rod-pearls 0)

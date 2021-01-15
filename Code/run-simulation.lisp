@@ -13,8 +13,7 @@
 ;;; Nothing!
 (defun reload ())
 
-(defstruct (alien-stuff (:constructor %make-alien-stuff))
-  (garbage-vector #()))
+(defstruct (alien-stuff (:constructor %make-alien-stuff)))
 
 (defun make-alien-stuff (jobs)
   (%make-alien-stuff :garbage-vector (make-array jobs)))
@@ -64,7 +63,13 @@
 (defconstant +pearl-limit+ 42)
 
 (defun run-test (&key (jobs 200)
-                      (alien-stuff (make-alien-stuff jobs)))
-  (read-off-results
-   (lparallel:pmapcar #'simulate
-                      (alien-stuff-garbage-vector alien-stuff))))
+                      (alien-stuff nil))
+  (declare (ignore alien-stuff))
+  (let ((results '())
+        (lock (bt:make-lock)))
+    (lparallel:pdotimes (n jobs)
+      (declare (ignore n))
+      (let ((result (simulate)))
+        (bt:with-lock-held (lock)
+          (push result results))))
+    (read-off-results results)))
